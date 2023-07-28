@@ -1,0 +1,7 @@
+langchain
+openai
+tiktoken
+pathspec
+python-dotenv
+psycopg2-binary
+pgvector
