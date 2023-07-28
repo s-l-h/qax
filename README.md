@@ -1,22 +1,30 @@
 # 🕵 QAgent - Retrieval Q&A for Code Repositories
 
-QAgent is a small and efficient implementation for Retrieval Question & Answer (Q&A) designed to store embeddings for code repositories or any folder full of text files. With RetriQ, you can create embeddings for folder structures containing text files, such as code repositories, and leverage OpenAI's GPT 3.5 model for performing Q&A on the indexed data.
+QAgent is a small implementation for Retrieval Question & Answer (Q&A) designed to store embeddings for code repositories or any folder full of text files. 
 
-## Features
+With QAgent, you can create embeddings for folder structures containing text files, such as code repositories, and leverage OpenAI's [text-embedding-ada-002](https://platform.openai.com/docs/guides/embeddings) model, to create vector representations and store them in a [pgVector](https://python.langchain.com/docs/integrations/vectorstores/pgvector) container. 
+After the index has been built, the app uses [langchain´s RetrievelQA chain](https://python.langchain.com/docs/use_cases/question_answering/how_to/vector_db_qa) with GPT 3.5 model for performing Q&A on the indexed data.
 
-- Efficiently stores embeddings for code repositories and other text-based folders.
-- Utilizes OpenAI's GPT 3.5 model for question answering on indexed data.
-- Supports integration with [pgVector](https://python.langchain.com/docs/integrations/vectorstores/pgvector), a vector extension for PostgreSQL databases.
 
-## Installation and Setup
+## 1. Installation and Setup
 
 ### Prerequisites
-Make sure you have the following installed on your machine:
 
-Docker - for containerization
-Git - for cloning the repository
+- [OpenAI API Key](https://platform.openai.com/account/api-keys)
+- [Docker](https://docs.docker.com/get-docker/)
 
-### Clone the Repository
+
+### Build the application container
+
+Build a lokal docker container to run the app:
+
+```sh
+docker build -t qagent .
+```
+
+___
+
+## 2. Prepare the data source
 
 To get started, clone any repository and navigate to its root directory:
 
@@ -38,7 +46,7 @@ PGVECTOR_PORT=5432
 PGVECTOR_DATABASE=vectordb
 PGVECTOR_USER=victor
 PGVECTOR_PASSWORD=vector
-PGVECTOR_COLLECTION=git-gpt
+PGVECTOR_COLLECTION=qagent
 ```
 
 `db.env`:
@@ -51,7 +59,7 @@ PGDATA=/.vectordb
 
 ### Start the pgVector Container
 
-#### Linux 🐧
+#### 🐧 Linux 
 ```sh
 docker run -d \
 --name pgvector \
@@ -61,43 +69,50 @@ docker run -d \
 ankane/pgvector
 ```
 
-#### Windows ⌛
+#### ⌛ Windows 
 ```powershell
 docker run -d `
 --name pgvector `
 --env-file=db.env `
--p 54321:5432 `
+-p 5432:5432 `
 -v ${PWD}/.vectordb:/var/lib/postgresql `
 ankane/pgvector
 ```
 
-### Enable Extension
+#### Enable pgVector Extension
 
 ```sh
 docker cp ./load-ext.sh pgvector:/load-ext.sh && \
 docker exec pgvector /load-ext.sh
 ```
+___
 
-### Parse Files and Create Embeddings
+## 3. Parse files and create embeddings
 
 Run the following command to create embeddings for the files in the repository:
 
 ```sh
-docker run --rm -it --env-file=.env -v ${PWD}:/repository git-gpt --index
+docker run --rm -it --env-file=.env -v ${PWD}:/repository qagent --index
 ```
 
-### Query the Index
+This will, by default, create a `.vectordb` folder in your repository to store the index. 
+To change the name, adjust `PGDATA` variable in `db.env`
 
-To ask questions about the indexed data, use the following command:
+___
+
+## 4. Query the Index 💬
+
+To ask questions about the indexed data, use the command below:
 
 ```sh
-docker run --rm -it --env-file=.env -v ${PWD}:/repository git-gpt "Which libraries are needed to build the app?"
+docker run --rm -it --env-file=.env -v ${PWD}:/repository qagent [QUERY]
 ```
 
-## Example Output
+Example 1:
 
-Upon querying the index, you will receive an answer based on the indexed data:
-
+```sh
+docker run --rm -it --env-file=.env -v ${PWD}:/repository qagent "Which libraries are needed to build the app?"
+```
 ```
 > Entering new RetrievalQA chain...
 
@@ -112,6 +127,35 @@ Sources:
   - /repository/README.md
 ```
 
+Example 2:
+
+```sh
+docker run --rm -it --env-file=.env -v ${PWD}:/repository qagent "Create inline documentation for the main function"
+```
+
+```
+> Entering new RetrievalQA chain...
+
+> Finished chain.
+
+
+    """The main function of the document indexing and similarity search program.
+
+    Args:
+        index (bool): Whether to perform document indexing.
+    """
+    embeddings = OpenAIEmbeddings()
+--------------------------------------------------------------------------------
+
+Sources:
+  - /repository/app.py
+  - /repository/requirements.txt
+  - /repository/README.md
+  - /repository/app.py
+```
+
+___
+
 ## License
 
 This project is licensed under the [MIT License](LICENSE).
@@ -122,4 +166,4 @@ We welcome contributions from the community! Please follow our [contribution gui
 
 ## Contact
 
-For any inquiries or support, feel free to reach out to us at [support@logistik.systems](mailto:support@logistik.systems) or join our community on [Discord](https://discord.com/channels/1055055966317588510/1055055966317588513).
+For any inquiries or support, feel free to join our community on [Discord](https://discord.com/channels/1055055966317588510/1055055966317588513).
