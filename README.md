@@ -1,10 +1,13 @@
 # 🕵 QAgent - Retrieval Q&A for Code Repositories
 
-QAgent is a small implementation for Retrieval Question & Answer (Q&A) designed to store embeddings for code repositories or any folder full of text files. 
+QAgent is a small proof-of-concept implementation for Retrieval Question & Answer (Q&A) aimed to store embeddings for code repositories or any folder full of text files. This code is a simple adaption of the langchain examples, embedded in docker containers
 
 With QAgent, you can create embeddings for folder structures containing text files, such as code repositories, and leverage OpenAI's [text-embedding-ada-002](https://platform.openai.com/docs/guides/embeddings) model, to create vector representations and store them in a [pgVector](https://python.langchain.com/docs/integrations/vectorstores/pgvector) container. 
-After the index has been built, the app uses [langchain´s RetrievelQA chain](https://python.langchain.com/docs/use_cases/question_answering/how_to/vector_db_qa) with GPT 3.5 model for performing Q&A on the indexed data.
+After the index has been built, the app uses [langchain´s RetrievelQA chain](https://python.langchain.com/docs/use_cases/question_answering/how_to/vector_db_qa) with `gpt-3.5-turbo` (or `gpt-4` if you have access to it) model for performing Q&A on the indexed data.
 
+
+![Alt text](doc/qa_flow.jpeg)
+(see [langchain QA Docs](https://python.langchain.com/docs/use_cases/question_answering/))
 
 ## 1. Installation and Setup
 

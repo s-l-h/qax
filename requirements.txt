@@ -5,3 +5,5 @@ pathspec
 python-dotenv
 psycopg2-binary
 pgvector
+pypdf
+unstructured[local-inference]
