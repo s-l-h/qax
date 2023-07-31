@@ -1,9 +1,9 @@
-# 🕵 QAgent - Retrieval Q&A for Code Repositories
+# 🕵 QAX - Q&A over indeX
 
-QAgent is a small proof-of-concept implementation for Retrieval Question & Answer (Q&A) aimed to store embeddings for code repositories or any folder full of text files. This code is a simple adaption of the langchain examples, embedded in docker containers
+qax is a small proof-of-concept implementation for Retrieval Question & Answer (Q&A) aimed to store embeddings for code repositories or any folder full of text files. This code is a simple adaption of the langchain examples, embedded in docker containers
 
-With QAgent, you can create embeddings for folder structures containing text files, such as code repositories, and leverage OpenAI's [text-embedding-ada-002](https://platform.openai.com/docs/guides/embeddings) model, to create vector representations and store them in a [pgVector](https://python.langchain.com/docs/integrations/vectorstores/pgvector) container. 
-After the index has been built, the app uses [langchain´s RetrievelQA chain](https://python.langchain.com/docs/use_cases/question_answering/how_to/vector_db_qa) with `gpt-3.5-turbo` (or `gpt-4` if you have access to it) model for performing Q&A on the indexed data.
+With qax, you can create embeddings for folder structures containing text files, such as code repositories, leverage OpenAI's [text-embedding-ada-002](https://platform.openai.com/docs/guides/embeddings) model and store them in a [pgVector](https://python.langchain.com/docs/integrations/vectorstores/pgvector) container. 
+After the index has been built, the app uses [langchain´s RetrievelQA chain](https://python.langchain.com/docs/use_cases/question_answering/how_to/vector_db_qa) with `gpt-3.5-turbo` (or `gpt-4` if available) model for performing Q&A on the indexed data.
 
 
 ![Alt text](doc/qa_flow.jpeg)
@@ -22,7 +22,7 @@ After the index has been built, the app uses [langchain´s RetrievelQA chain](ht
 Build a lokal docker container to run the app:
 
 ```sh
-docker build -t qagent .
+docker build -t qax .
 ```
 
 ___
@@ -46,10 +46,7 @@ OPENAI_API_KEY=your_openai_api_key_here
 # Database Connection
 PGVECTOR_HOST=IP_OF_HOST
 PGVECTOR_PORT=5432
-PGVECTOR_DATABASE=vectordb
-PGVECTOR_USER=victor
-PGVECTOR_PASSWORD=vector
-PGVECTOR_COLLECTION=qagent
+PGVECTOR_COLLECTION=qax
 ```
 
 `db.env`:
@@ -95,7 +92,11 @@ ___
 Run the following command to create embeddings for the files in the repository:
 
 ```sh
-docker run --rm -it --env-file=.env -v ${PWD}:/repository qagent --index
+docker run --rm -it \
+--env-file=.env \
+--env-file=db.env \
+-v ${PWD}:/repository \
+qax --index
 ```
 
 This will, by default, create a `.vectordb` folder in your repository to store the index. 
@@ -108,13 +109,21 @@ ___
 To ask questions about the indexed data, use the command below:
 
 ```sh
-docker run --rm -it --env-file=.env -v ${PWD}:/repository qagent [QUERY]
+docker run --rm -it \
+--env-file=.env \
+--env-file=db.env \
+-v ${PWD}:/repository \
+qax [QUERY]
 ```
 
 Example 1:
 
 ```sh
-docker run --rm -it --env-file=.env -v ${PWD}:/repository qagent "Which libraries are needed to build the app?"
+docker run --rm -it \
+--env-file=.env \
+--env-file=db.env \
+-v ${PWD}:/repository \
+qax "Which libraries are needed to build the app?"
 ```
 ```
 > Entering new RetrievalQA chain...
@@ -133,7 +142,11 @@ Sources:
 Example 2:
 
 ```sh
-docker run --rm -it --env-file=.env -v ${PWD}:/repository qagent "Create inline documentation for the main function"
+docker run --rm -it \
+--env-file=.env \
+--env-file=db.env \
+-v ${PWD}:/repository \
+qax "Create inline documentation for the main function"
 ```
 
 ```
